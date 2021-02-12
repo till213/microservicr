@@ -1,20 +1,16 @@
 package net.tillart.restr.user;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.BodyBuilder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 @RestController
-public class UserResource {
+public class UserController {
 
 	@Autowired
 	private UserDaoService dao;
@@ -34,10 +30,18 @@ public class UserResource {
 	}
 
 	@PostMapping(path = "/users")
-	public ResponseEntity<User> createUser(@RequestBody User user) {
-		User newUser =  dao.add(user);
-		
+	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+		User newUser = dao.add(user);
+
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.getId()).toUri();
 		return ResponseEntity.created(uri).build();
 	}
+
+	@DeleteMapping(path = "/users/{id}")
+	public void deleteUser(@PathVariable int id) {
+		if (!dao.delete(id)) {
+			throw new UserNotFoundException("id-" + id);
+		}
+	}
+
 }
